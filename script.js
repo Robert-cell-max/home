@@ -236,8 +236,8 @@ function movePlayer() {
   // Управление клавиатурой: W, S, A, D
   if (keys["w"]) move.add(forward.clone().multiplyScalar(speed));
   if (keys["s"]) move.add(forward.clone().multiplyScalar(-speed));
-  if (keys["a"]) move.add(rightVec.clone().multiplyScalar(-speed));
-  if (keys["d"]) move.add(rightVec.clone().multiplyScalar(speed));
+  if (keys["a"]) move.add(rightVec.clone().multiplyScalar(speed));
+  if (keys["d"]) move.add(rightVec.clone().multiplyScalar(-speed));
   
   // Обработка ввода с виртуального джойстика
   if (joystickVector.length() > 0) {
