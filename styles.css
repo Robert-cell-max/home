@@ -1,5 +1,4 @@
 body { margin: 0; overflow: hidden; font-family: sans-serif; }
-
 #ui {
   position: absolute;
   top: 10px;
@@ -10,7 +9,7 @@ body { margin: 0; overflow: hidden; font-family: sans-serif; }
   border-radius: 5px;
   z-index: 10;
 }
-
+/* Виртуальный джойстик для телефона */
 #joystick-container {
   position: absolute;
   bottom: 20px;
@@ -22,7 +21,6 @@ body { margin: 0; overflow: hidden; font-family: sans-serif; }
   touch-action: none;
   z-index: 11;
 }
-
 #joystick {
   position: absolute;
   left: 50%;
@@ -35,7 +33,7 @@ body { margin: 0; overflow: hidden; font-family: sans-serif; }
   border-radius: 50%;
   touch-action: none;
 }
-
+/* Кнопка для бега */
 #run-button {
   position: absolute;
   bottom: 20px;
@@ -50,7 +48,7 @@ body { margin: 0; overflow: hidden; font-family: sans-serif; }
   z-index: 11;
   cursor: pointer;
 }
-
+/* Стартовая кнопка – по центру */
 #start-button {
   position: absolute;
   top: 50%;
@@ -62,7 +60,7 @@ body { margin: 0; overflow: hidden; font-family: sans-serif; }
   display: block;
   cursor: pointer;
 }
-
+/* Сообщение о проигрыше (по центру) */
 #death-message {
   position: absolute;
   top: 50%;
@@ -76,3 +74,4 @@ body { margin: 0; overflow: hidden; font-family: sans-serif; }
   border-radius: 10px;
   display: none;
 }
+
