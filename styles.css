@@ -1,0 +1,76 @@
+body { margin: 0; overflow: hidden; font-family: sans-serif; }
+#ui {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(0,0,0,0.7);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  z-index: 10;
+}
+/* Виртуальный джойстик для телефона */
+#joystick-container {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  width: 80px;
+  height: 80px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 50%;
+  touch-action: none;
+  z-index: 11;
+}
+#joystick {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 40px;
+  height: 40px;
+  margin-left: -20px;
+  margin-top: -20px;
+  background: rgba(255,255,255,0.8);
+  border-radius: 50%;
+  touch-action: none;
+}
+/* Кнопка для бега */
+#run-button {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background: rgba(255,0,0,0.7);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 16px;
+  z-index: 11;
+  cursor: pointer;
+}
+/* Стартовая кнопка – по центру */
+#start-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  font-size: 24px;
+  padding: 10px 20px;
+  display: block;
+  cursor: pointer;
+}
+/* Сообщение о проигрыше (по центру) */
+#death-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  color: white;
+  font-size: 48px;
+  background: rgba(0,0,0,0.7);
+  padding: 20px;
+  border-radius: 10px;
+  display: none;
+}
