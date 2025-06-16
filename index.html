@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Страшный дом (бета версия)</title>
+  <!-- Подключение внешнего файла стилей -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h2>Страшный дом (бета версия)</h2>
+  <div id="ui">
+    <h2>3D Игра: Убийца и Выживший</h2>
+    <p id="status"></p>
+  </div>
+  
+  <!-- Виртуальный джойстик для телефона -->
+  <div id="joystick-container">
+    <div id="joystick"></div>
+  </div>
+  
+  <!-- Кнопка для бега -->
+  <button id="run-button">Run</button>
+  
+  <!-- Кнопка старта игры -->
+  <button id="start-button">Старт</button>
+  
+  <!-- Сообщение о проигрыше (по центру) -->
+  <div id="death-message"></div>
+  
+  <!-- Подключение библиотеки Three.js -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
+  <!-- Подключение внешнего файла скриптов -->
+  <script src="script.js"></script>
+</body>
+</html>
