@@ -24,8 +24,19 @@ let rotationPrevClientX = null;
 init();
 animate();
 
+// Следим за pointer lock, чтобы мышка не выходила за окно
+document.addEventListener("pointerlockchange", () => {
+  if (gameStarted && document.pointerLockElement !== renderer.domElement) {
+    renderer.domElement.requestPointerLock();
+  }
+}, false);
+
 function init() {
   scene = new THREE.Scene();
+  
+  // Меняем фон сцены для усиления атмосферы
+  scene.background = new THREE.Color(0x20252f);
+  
   camera = new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
@@ -34,12 +45,15 @@ function init() {
   );
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  // Задаём цвет очистки сцены (фон)
+  renderer.setClearColor(0x20252f);
+  
   document.body.appendChild(renderer.domElement);
   
   const light = new THREE.AmbientLight(0xffffff, 1);
   scene.add(light);
   
-  // Пол
+  // Пол (новый декор – добавим текстуру или цвет можно расширять)
   const floorGeo = new THREE.BoxGeometry(40, 0.1, 40);
   const floorMat = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
   const floor = new THREE.Mesh(floorGeo, floorMat);
@@ -67,6 +81,9 @@ function init() {
   player.position.set(10, 0.5, 10);
   scene.add(player);
   
+  // Добавляем декор – несколько простых декоративных объектов (например, «деревья»)
+  addDecor();
+  
   // Клавиатурное управление
   window.addEventListener("keydown", e => {
     keys[e.key.toLowerCase()] = true;
@@ -78,7 +95,7 @@ function init() {
     keys[e.key.toLowerCase()] = false;
   });
   
-  // Виртуальный джойстик (только для телефона)
+  // Виртуальный джойстик (для телефона)
   const joystickContainer = document.getElementById("joystick-container");
   const joystick = document.getElementById("joystick");
   
@@ -118,15 +135,15 @@ function init() {
     joystickVector.set(dx, dy);
   }
   
-  // Обработка мыши через Pointer Lock API      
+  // Обработка мыши через Pointer Lock API
   renderer.domElement.addEventListener("mousemove", function(e) {
-    // Если указатель захвачен, используем e.movementX
-    if (document.pointerLockElement === renderer.domElement) {
-      cameraRotation -= e.movementX * 0.005;
-    }
+      // Если указатель захвачен, используем e.movementX
+      if (document.pointerLockElement === renderer.domElement) {
+        cameraRotation -= e.movementX * 0.005;
+      }
   });
   
-  // Обработчики поворота камеры пальцем – без изменений
+  // Обработчики поворота камеры пальцем – если касание вне зоны джойстика
   renderer.domElement.addEventListener("touchstart", function (e) {
     let joystickRect = document.getElementById("joystick-container").getBoundingClientRect();
     let touch = e.touches[0];
@@ -163,13 +180,32 @@ function init() {
     lastRunReleaseTime = Date.now();
   }, { passive: false });
   
-  // Стартовая кнопка
+  // Стартовая кнопка: при клике включает игру, полный экран и захват указателя
   document.getElementById("start-button").addEventListener("click", function (e) {
     e.preventDefault();
     startGame();
-    // Запрашиваем захват указателя, чтобы мышь не выходила за окно
+    // Запрашиваем полноэкранный режим
+    document.documentElement.requestFullscreen().catch((err) => {
+      console.warn("Ошибка перехода в полноэкранный режим: ", err);
+    });
+    // Запрашиваем захват указателя
     renderer.domElement.requestPointerLock();
   });
+}
+
+function addDecor() {
+  // Простой декор – набор «деревьев» из конусов
+  const decorMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+  const decorGeo = new THREE.ConeGeometry(0.5, 2, 8);
+  
+  for (let i = 0; i < 5; i++) {
+    let decor = new THREE.Mesh(decorGeo, decorMaterial);
+    // Случайные позиции в пределах ограниченной зоны (например, между -10 и 10)
+    decor.position.set(-10 + Math.random() * 20, 1, -10 + Math.random() * 20);
+    // Немного повернём для разнообразия
+    decor.rotation.y = Math.random() * Math.PI * 2;
+    scene.add(decor);
+  }
 }
 
 function movePlayer() {
@@ -212,9 +248,12 @@ function movePlayer() {
   }
   
   const nextPos = player.position.clone().add(move);
+  // Новое ограничение зоны движения (уменьшено по сравнению с прошлым значением)
+  const zoneLimit = 15; 
   const buildingBox = new THREE.Box3().setFromObject(building);
   const nextBox = new THREE.Box3().setFromCenterAndSize(nextPos, new THREE.Vector3(1, 1, 1));
-  if (!buildingBox.intersectsBox(nextBox)) {
+  // Если позиция игрока всё ещё внутри уменьшенной зоны и не пересекается со зданием, обновляем позицию
+  if (Math.abs(nextPos.x) < zoneLimit && Math.abs(nextPos.z) < zoneLimit && !buildingBox.intersectsBox(nextBox)) {
     player.position.copy(nextPos);
   }
   
@@ -274,10 +313,11 @@ function killerMove() {
 }
 
 function checkBounds() {
-  const limit = 20.5;
+  // Теперь зона ограничена по горизонтали/вертикали (уменьшена до 15)
+  const zoneLimit = 15;
   if (
-    Math.abs(player.position.x) > limit ||
-    Math.abs(player.position.z) > limit
+    Math.abs(player.position.x) > zoneLimit ||
+    Math.abs(player.position.z) > zoneLimit
   ) {
     document.getElementById("death-message").innerText =
       "Ты вышел за пределы зоны. Проиграл.";
@@ -327,6 +367,7 @@ function startGame() {
   gameStarted = false;
   startTime = Date.now();
   stamina = 100;
+  // Сбрасываем позицию игрока и убийцы
   player.position.set(10, 0.5, 10);
   killer.position.set(-15, 1.5, -15);
   cameraRotation = 0;
