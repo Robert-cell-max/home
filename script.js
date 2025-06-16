@@ -18,9 +18,7 @@ const regenRate = 0.1;
 let joystickVector = new THREE.Vector2(0, 0);
 const maxJoystickRadius = 40; // пикселей
 
-// Для поворота камеры мышью
-let prevClientX = null;
-// Для поворота камеры пальцем
+// Для поворота камеры пальцем (не используется для мыши)
 let rotationPrevClientX = null;
 
 init();
@@ -37,38 +35,38 @@ function init() {
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
-
+  
   const light = new THREE.AmbientLight(0xffffff, 1);
   scene.add(light);
-
+  
   // Пол
   const floorGeo = new THREE.BoxGeometry(40, 0.1, 40);
   const floorMat = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
   const floor = new THREE.Mesh(floorGeo, floorMat);
   scene.add(floor);
-
+  
   // Здание
   const buildingGeo = new THREE.BoxGeometry(14, 12, 14);
   const buildingMat = new THREE.MeshBasicMaterial({ color: 0x555555 });
   building = new THREE.Mesh(buildingGeo, buildingMat);
   building.position.set(0, 4, 0);
   scene.add(building);
-
+  
   const cubeGeo = new THREE.BoxGeometry(1, 1, 1);
-
+  
   // Преследователь (убийца)
   const killerMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
   killer = new THREE.Mesh(cubeGeo, killerMat);
   killer.scale.y = 3;
   killer.position.set(-15, 1.5, -15);
   scene.add(killer);
-
+  
   // Игрок
   const playerMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
   player = new THREE.Mesh(cubeGeo.clone(), playerMat);
   player.position.set(10, 0.5, 10);
   scene.add(player);
-
+  
   // Клавиатурное управление
   window.addEventListener("keydown", e => {
     keys[e.key.toLowerCase()] = true;
@@ -79,31 +77,31 @@ function init() {
     }
     keys[e.key.toLowerCase()] = false;
   });
-
+  
   // Виртуальный джойстик (только для телефона)
   const joystickContainer = document.getElementById("joystick-container");
   const joystick = document.getElementById("joystick");
-
+  
   joystickContainer.addEventListener("touchstart", function(e) {
     e.preventDefault();
     let touch = e.touches[0];
     let rect = joystickContainer.getBoundingClientRect();
     updateJoystick(touch, rect);
   }, { passive: false });
-
+  
   joystickContainer.addEventListener("touchmove", function(e) {
     e.preventDefault();
     let touch = e.touches[0];
     let rect = joystickContainer.getBoundingClientRect();
     updateJoystick(touch, rect);
   }, { passive: false });
-
+  
   joystickContainer.addEventListener("touchend", function(e) {
     e.preventDefault();
     joystick.style.transform = `translate(0px, 0px)`;
     joystickVector.set(0, 0);
   }, { passive: false });
-
+  
   function updateJoystick(touch, rect) {
     let x = touch.clientX - rect.left;
     let y = touch.clientY - rect.top;
@@ -115,26 +113,21 @@ function init() {
       dx = Math.cos(angle) * maxJoystickRadius;
       dy = Math.sin(angle) * maxJoystickRadius;
     }
+    // Визуальное положение джойстика без изменений
     joystick.style.transform = `translate(${dx}px, ${dy}px)`;
     joystickVector.set(dx, dy);
   }
-
-  // Поворот камеры мышью (без зажатия кнопок)
+  
+  // Обработка мыши через Pointer Lock API      
   renderer.domElement.addEventListener("mousemove", function(e) {
-    if (prevClientX === null) {
-      prevClientX = e.clientX;
-      return;
+    // Если указатель захвачен, используем e.movementX
+    if (document.pointerLockElement === renderer.domElement) {
+      cameraRotation -= e.movementX * 0.005;
     }
-    let delta = e.clientX - prevClientX;
-    cameraRotation -= delta * 0.005;
-    prevClientX = e.clientX;
   });
-  renderer.domElement.addEventListener("mouseleave", function() {
-    prevClientX = null;
-  });
-
-  // Поворот камеры пальцем (если касание не в области джойстика)
-  renderer.domElement.addEventListener("touchstart", function(e) {
+  
+  // Обработчики поворота камеры пальцем – без изменений
+  renderer.domElement.addEventListener("touchstart", function (e) {
     let joystickRect = document.getElementById("joystick-container").getBoundingClientRect();
     let touch = e.touches[0];
     if (touch.clientX < joystickRect.left || touch.clientX > joystickRect.right ||
@@ -142,8 +135,8 @@ function init() {
       rotationPrevClientX = touch.clientX;
     }
   }, { passive: false });
-
-  renderer.domElement.addEventListener("touchmove", function(e) {
+  
+  renderer.domElement.addEventListener("touchmove", function (e) {
     let joystickRect = document.getElementById("joystick-container").getBoundingClientRect();
     let touch = e.touches[0];
     if (touch.clientX < joystickRect.left || touch.clientX > joystickRect.right ||
@@ -153,27 +146,29 @@ function init() {
       rotationPrevClientX = touch.clientX;
     }
   }, { passive: false });
-
-  renderer.domElement.addEventListener("touchend", function() {
+  
+  renderer.domElement.addEventListener("touchend", function (e) {
     rotationPrevClientX = null;
   }, { passive: false });
-
+  
   // Обработчики для кнопки бега (на мобильных)
   const runButton = document.getElementById("run-button");
-  runButton.addEventListener("touchstart", function(e) {
+  runButton.addEventListener("touchstart", function (e) {
     e.preventDefault();
     keys["f"] = true;
   }, { passive: false });
-  runButton.addEventListener("touchend", function(e) {
+  runButton.addEventListener("touchend", function (e) {
     e.preventDefault();
     keys["f"] = false;
     lastRunReleaseTime = Date.now();
   }, { passive: false });
-
+  
   // Стартовая кнопка
-  document.getElementById("start-button").addEventListener("click", function(e) {
+  document.getElementById("start-button").addEventListener("click", function (e) {
     e.preventDefault();
     startGame();
+    // Запрашиваем захват указателя, чтобы мышь не выходила за окно
+    renderer.domElement.requestPointerLock();
   });
 }
 
@@ -191,34 +186,38 @@ function movePlayer() {
     }
   }
   stamina = Math.max(0, Math.min(100, stamina));
-
+  
+  // Определяем вектор взгляда на основе cameraRotation
   const forward = new THREE.Vector3(
     Math.sin(cameraRotation),
     0,
     Math.cos(cameraRotation)
   ).normalize();
+  // Правый вектор для страфинга
   const rightVec = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), forward).normalize();
-
+  
   let move = new THREE.Vector3();
+  // Управление клавиатурой: W, S, A, D
   if (keys["w"]) move.add(forward.clone().multiplyScalar(speed));
   if (keys["s"]) move.add(forward.clone().multiplyScalar(-speed));
-  if (keys["a"]) move.add(rightVec.clone().multiplyScalar(speed));
-  if (keys["d"]) move.add(rightVec.clone().multiplyScalar(-speed));
-
+  if (keys["a"]) move.add(rightVec.clone().multiplyScalar(-speed));
+  if (keys["d"]) move.add(rightVec.clone().multiplyScalar(speed));
+  
+  // Обработка ввода с виртуального джойстика
   if (joystickVector.length() > 0) {
     let verticalInput = -joystickVector.y / maxJoystickRadius;
-    let horizontalInput = -joystickVector.x / maxJoystickRadius;
+    let horizontalInput = -joystickVector.x / maxJoystickRadius;  // инверсия горизонтальной оси
     move.add(forward.clone().multiplyScalar(verticalInput * speed));
-    move.add(rightVec.clone().multiplyScalar(-horizontalInput * speed));
+    move.add(rightVec.clone().multiplyScalar(horizontalInput * speed));
   }
-
+  
   const nextPos = player.position.clone().add(move);
   const buildingBox = new THREE.Box3().setFromObject(building);
   const nextBox = new THREE.Box3().setFromCenterAndSize(nextPos, new THREE.Vector3(1, 1, 1));
   if (!buildingBox.intersectsBox(nextBox)) {
     player.position.copy(nextPos);
   }
-
+  
   // Камера следует за игроком
   camera.position.set(player.position.x, player.position.y + 1.5, player.position.z);
   camera.lookAt(
@@ -295,6 +294,7 @@ function animate() {
   const now = Date.now();
   const elapsed = (now - startTime) / 1000;
   
+  // Обратный отсчёт до старта игры
   if (elapsed < countdown) {
     document.getElementById("status").innerText =
       `Убийца ждёт: ${Math.ceil(countdown - elapsed)} сек... (Выносливость: ${Math.floor(stamina)})`;
